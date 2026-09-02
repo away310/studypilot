@@ -1,0 +1,57 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: studypilot
+
+  ai:
+    openai:
+      api-key: ${DASHSCOPE_API_KEY:}
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      chat:
+        model: ${STUDYPILOT_CHAT_MODEL:qwen-plus}
+        temperature: 0.3
+        max-tokens: 2048
+      embedding:
+        model: text-embedding-v3
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:}
+
+  datasource:
+    url: jdbc:sqlite:./data/studypilot.db
+    driver-class-name: org.sqlite.JDBC
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.community.dialect.SQLiteDialect
+    open-in-view: false
+
+app:
+  kb:
+    # 默认示例知识库目录（相对项目根，可改成绝对路径）
+    default-dir: ./kb
+    # 启动时是否自动导入 default-dir 下的示例文档
+    auto-seed: true
+    # 结构感知切分参数：单块最大字符数、相邻块重叠
+    chunk-max-chars: 800
+    chunk-overlap-chars: 100
+  retrieval:
+    # 粗召回候选数、精取块数
+    recall-candidates: 20
+    top-k: 5
+    # 混合检索权重
+    vector-weight: 0.6
+    keyword-weight: 0.4
+    # 回答中引用分块是否保留全文
+    include-chunk-text-in-prompt: true
+  answer:
+    # 拒答阈值：top-1 相似度低于该值视为知识库无相关内容（0~1，越大越保守）
+    reject-threshold: 0.35
+
+logging:
+  level:
+    com.studypilot: INFO

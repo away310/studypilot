@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyPilot - 知识库问答</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: #f0f2f5; color: #1a1a1a; min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    header {
+      background: #2563eb; color: #fff; padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 18px; font-weight: 600; }
+    .main { flex: 1; display: flex; gap: 16px; padding: 16px 24px; max-width: 1200px; width: 100%; margin: 0 auto; }
+    .side { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
+    .panel {
+      background: #fff; border-radius: 10px; padding: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+    .panel h3 { font-size: 13px; color: #5c5f66; margin-bottom: 10px; }
+    input[type=file] { font-size: 12px; margin-bottom: 8px; }
+    button {
+      background: #2563eb; color: #fff; border: 0; border-radius: 6px;
+      padding: 7px 12px; font-size: 13px; cursor: pointer;
+    }
+    button:disabled { background: #a5b4fc; cursor: not-allowed; }
+    button.danger { background: #dc2626; }
+    .doc-list { list-style: none; font-size: 12.5px; }
+    .doc-list li {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 0; border-bottom: 1px dashed #eee;
+    }
+    .doc-list .del { color: #dc2626; cursor: pointer; font-size: 12px; }
+    .chat {
+      flex: 1; display: flex; flex-direction: column; background: #fff;
+      border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); overflow: hidden;
+    }
+    .messages { flex: 1; overflow-y: auto; padding: 18px; }
+    .msg { margin-bottom: 14px; max-width: 85%; }
+    .msg .who { font-size: 11px; color: #9ca3af; margin-bottom: 3px; }
+    .msg .body {
+      padding: 10px 13px; border-radius: 10px; font-size: 14px; line-height: 1.6;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .msg.user { margin-left: auto; }
+    .msg.user .body { background: #2563eb; color: #fff; border-bottom-right-radius: 2px; }
+    .msg.bot .body { background: #f3f4f6; border-bottom-left-radius: 2px; }
+    .msg .cite {
+      font-size: 12px; color: #5c5f66; margin-top: 6px; background: #eef2ff;
+      border-radius: 6px; padding: 6px 9px; border-left: 3px solid #2563eb;
+    }
+    .msg .cite b { color: #2563eb; }
+    .inputbar { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #eee; }
+    .inputbar input {
+      flex: 1; border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 12px; font-size: 14px; outline: none;
+    }
+    .inputbar input:focus { border-color: #2563eb; }
+    .hint { font-size: 11.5px; color: #9ca3af; padding: 0 12px 10px; }
+    .eval { margin-top: 6px; font-size: 12.5px; }
+    .eval table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    .eval td, .eval th { border: 1px solid #e5e7eb; padding: 4px 6px; font-size: 12px; text-align: left; }
+    .eval th { background: #f9fafb; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>📚 StudyPilot · 知识库问答 Agent</h1>
+  <button onclick="runEval()" id="evalBtn">跑检索评测（Recall@5）</button>
+</header>
+
+<div class="main">
+  <div class="side">
+    <div class="panel">
+      <h3>上传文档（md / txt / pdf）</h3>
+      <input type="file" id="file" accept=".md,.markdown,.txt,.pdf" multiple>
+      <button onclick="upload()">入库</button>
+    </div>
+    <div class="panel">
+      <h3>知识库文档</h3>
+      <ul class="doc-list" id="docList"></ul>
+    </div>
+    <div class="panel eval">
+      <h3>评测结果（20 条评测集）</h3>
+      <div id="evalResult">点击右上角按钮运行</div>
+    </div>
+  </div>
+
+  <div class="chat">
+    <div class="messages" id="messages"></div>
+    <div class="inputbar">
+      <input id="question" placeholder="输入问题，例如：混合检索是哪两条通道？怎么融合？" onkeydown="if(event.key==='Enter')ask()">
+      <button onclick="ask()">发送</button>
+    </div>
+    <div class="hint">回答中的 [n] 为引用编号，对应下方"引用来源"；知识库无相关内容时会直接拒答。</div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function addMsg(who, text, cites) {
+  const box = $('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + who;
+  div.innerHTML = `<div class="who">${who === 'user' ? '你' : 'StudyPilot'}</div>
+    <div class="body"></div>`;
+  div.querySelector('.body').textContent = text;
+  if (cites && cites.length) {
+    const c = document.createElement('div');
+    c.className = 'cite';
+    c.innerHTML = cites.map((h, i) =>
+      `<div><b>[${i + 1}]</b> ${h.chunk.docName}${h.chunk.headingPath ? ' · ' + h.chunk.headingPath : ''}</div>`
+    ).join('');
+    div.appendChild(c);
+  }
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+async function upload() {
+  const file = $('file').files[0];
+  if (!file) return alert('请先选择文件');
+  const fd = new FormData();
+  fd.append('file', file);
+  const res = await fetch('/api/kb/documents', { method: 'POST', body: fd });
+  const data = await res.json();
+  alert(data.error ? '失败: ' + data.error : `入库成功：${data.name}，切分为 ${data.chunkCount} 块`);
+  refreshDocs();
+}
+
+async function refreshDocs() {
+  const res = await fetch('/api/kb/documents');
+  const docs = await res.json();
+  $('docList').innerHTML = docs.map(d =>
+    `<li><span>${d.name}（${d.chunkCount} 块）</span><span class="del" onclick="delDoc(${d.id})">删除</span></li>`
+  ).join('') || '<li style="color:#9ca3af">暂无文档，先上传或等待示例库导入</li>';
+}
+
+async function delDoc(id) {
+  await fetch('/api/kb/documents/' + id, { method: 'DELETE' });
+  refreshDocs();
+}
+
+async function ask() {
+  const q = $('question').value.trim();
+  if (!q) return;
+  $('question').value = '';
+  addMsg('user', q);
+
+  // 放一条空 bot 消息，SSE 逐段填充（打字机效果）
+  const botMsg = addMsg('bot', '');
+  const bodyEl = botMsg.querySelector('.body');
+  bodyEl.textContent = '';
+
+  try {
+    const res = await fetch('/api/chat/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q })
+    });
+    if (!res.ok || !res.body) throw new Error('HTTP ' + res.status);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let citations = null;
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const parts = buf.split('\n\n');
+      buf = parts.pop();
+      for (const part of parts) {
+        for (const line of part.split('\n')) {
+          if (line.startsWith('data: ')) {
+            const payload = line.slice(6);
+            if (payload.startsWith('{')) {
+              const meta = JSON.parse(payload);
+              citations = meta.citations || [];
+              if (meta.rejected) {
+                bodyEl.textContent = '抱歉，知识库中未找到相关内容。';
+                renderCites(botMsg, citations);
+                return;
+              }
+            } else {
+              bodyEl.textContent += payload;
+              scrollChat();
+            }
+          }
+        }
+      }
+    }
+    renderCites(botMsg, citations);
+  } catch (e) {
+    // SSE 失败时回退到普通 JSON 问答
+    const res2 = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q })
+    });
+    const data = await res2.json();
+    bodyEl.textContent = data.answer;
+    renderCites(botMsg, data.rejected ? [] : data.citations);
+  }
+}
+
+function renderCites(botMsg, citations) {
+  const old = botMsg.querySelector('.cite');
+  if (old) old.remove();
+  if (citations && citations.length) {
+    const c = document.createElement('div');
+    c.className = 'cite';
+    c.innerHTML = citations.map((h, i) =>
+      `<div><b>[${i + 1}]</b> ${h.doc}${h.section ? ' · ' + h.section : ''}</div>`
+    ).join('');
+    botMsg.appendChild(c);
+  }
+  scrollChat();
+}
+
+function scrollChat() {
+  $('messages').scrollTop = $('messages').scrollHeight;
+}
+
+async function runEval() {
+  $('evalBtn').disabled = true;
+  $('evalBtn').textContent = '评测运行中…';
+  try {
+    const res = await fetch('/api/eval/run');
+    const reports = await res.json();
+    let html = '<table><tr><th>模式</th><th>Recall@5</th><th>Top1 命中</th></tr>';
+    for (const r of reports) {
+      const name = { vector: '纯向量', keyword: '纯关键词', hybrid: '混合检索' }[r.mode] || r.mode;
+      html += `<tr><td>${name}</td><td>${(r.recallAt5 * 100).toFixed(1)}%</td><td>${(r.hitAt1 * 100).toFixed(1)}%</td></tr>`;
+    }
+    html += '</table>';
+    $('evalResult').innerHTML = html;
+  } catch (e) {
+    $('evalResult').textContent = '评测失败：' + e.message;
+  }
+  $('evalBtn').disabled = false;
+  $('evalBtn').textContent = '跑检索评测（Recall@5）';
+}
+
+refreshDocs();
+</script>
+</body>
+</html>

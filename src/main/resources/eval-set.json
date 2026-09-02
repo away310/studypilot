@@ -1,0 +1,22 @@
+[
+  {"question": "RAG 是什么？解决什么问题？", "expectedDocNames": ["spring-ai-rag-notes.md"], "referenceAnswer": "RAG 是检索增强生成，先在生成前检索相关资料拼入 Prompt，解决知识时效与幻觉问题"},
+  {"question": "RAG 流水线有哪些阶段？", "expectedDocNames": ["spring-ai-rag-notes.md"], "referenceAnswer": "文档解析、切分、向量化与检索、生成"},
+  {"question": "结构感知切分和固定长度切分有什么区别？", "expectedDocNames": ["spring-ai-rag-notes.md"], "referenceAnswer": "结构感知按标题层级切块保留章节上下文，固定长度简单但易切断语义"},
+  {"question": "切分时块大小和重叠字符怎么设置？", "expectedDocNames": ["spring-ai-rag-notes.md"], "referenceAnswer": "如 800 字符块大小加 100 字符重叠，缓解切在语义边界上的损失"},
+  {"question": "为什么单靠向量检索不够稳？", "expectedDocNames": ["spring-ai-rag-notes.md"], "referenceAnswer": "对专有名词、代码、精确术语匹配不稳，需要混合检索"},
+  {"question": "混合检索是哪两条通道？怎么融合？", "expectedDocNames": ["spring-ai-rag-notes.md"], "referenceAnswer": "向量语义检索加 BM25 关键词检索，权重线性加权或 RRF"},
+  {"question": "Recall@5 指标是什么意思？", "expectedDocNames": ["spring-ai-rag-notes.md"], "referenceAnswer": "期望文档出现在检索结果前五条的比例，衡量检索召回质量"},
+  {"question": "Embedding 向量入库前为什么要归一化？", "expectedDocNames": ["spring-ai-rag-notes.md"], "referenceAnswer": "L2 归一化后点积即余弦相似度，检索实现更简单"},
+  {"question": "小型知识库没有 Docker 时怎么做向量存储？", "expectedDocNames": ["spring-ai-rag-notes.md"], "referenceAnswer": "先自研轻量向量存储做全量余弦扫描，留接口以后换 Qdrant 或 FAISS"},
+  {"question": "中文关键词检索一般用什么分词？", "expectedDocNames": ["spring-ai-rag-notes.md"], "referenceAnswer": "Lucene 加 SmartChineseAnalyzer"},
+  {"question": "Function Calling 的实现步骤是什么？", "expectedDocNames": ["agent-function-calling.md"], "referenceAnswer": "发工具签名给模型，模型返回结构化 JSON 工具名与参数，应用执行后回传结果"},
+  {"question": "工具描述写得清楚有什么好处？", "expectedDocNames": ["agent-function-calling.md"], "referenceAnswer": "模型选对工具的准确率更高"},
+  {"question": "工具多了以后怎么管理？", "expectedDocNames": ["agent-function-calling.md"], "referenceAnswer": "用工具注册表 ToolRegistry，统一接口启动自动扫描，业务层只依赖注册表"},
+  {"question": "Agent 里多阶段工作流怎么编排？", "expectedDocNames": ["agent-function-calling.md"], "referenceAnswer": "角色拆分加阶段编排如 fetch 到 digest 到 respond，跨阶段共享状态"},
+  {"question": "工具调用失败会不会带崩整条会话？", "expectedDocNames": ["agent-function-calling.md"], "referenceAnswer": "不会，要做超时控制与失败兜底，单阶段失败降级"},
+  {"question": "并行工具执行时要注意什么？", "expectedDocNames": ["agent-function-calling.md"], "referenceAnswer": "注意上下文传递如租户与用户 ID，避免线程池丢上下文"},
+  {"question": "Java 线程池核心参数有哪些？", "expectedDocNames": ["java21-concurrency.md"], "referenceAnswer": "corePoolSize、maximumPoolSize、keepAliveTime、workQueue"},
+  {"question": "为什么生产环境不建议用 Executors 的默认无界队列？", "expectedDocNames": ["java21-concurrency.md"], "referenceAnswer": "无界队列可能内存被打满，建议显式 ThreadPoolExecutor 加有界队列与拒绝策略"},
+  {"question": "CompletableFuture 的 allOf 用在什么场景？", "expectedDocNames": ["java21-concurrency.md"], "referenceAnswer": "多个独立调用并行执行后合并结果，把总耗时压到最长单个请求"},
+  {"question": "Java 21 虚拟线程适合什么场景？", "expectedDocNames": ["java21-concurrency.md"], "referenceAnswer": "高并发 IO 密集型场景，每请求一线程而不担心线程数爆炸"}
+]
