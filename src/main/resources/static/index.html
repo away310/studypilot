@@ -127,23 +127,36 @@ async function upload() {
   if (!file) return alert('请先选择文件');
   const fd = new FormData();
   fd.append('file', file);
-  const res = await fetch('/api/kb/documents', { method: 'POST', body: fd });
-  const data = await res.json();
-  alert(data.error ? '失败: ' + data.error : `入库成功：${data.name}，切分为 ${data.chunkCount} 块`);
-  refreshDocs();
+  try {
+    const res = await fetch('/api/kb/documents', { method: 'POST', body: fd });
+    const data = await res.json();
+    alert(data.error ? '失败: ' + data.error : `入库成功：${data.name}，切分为 ${data.chunkCount} 块`);
+    refreshDocs();
+  } catch (e) {
+    alert('上传失败：' + e.message);
+  }
 }
 
 async function refreshDocs() {
-  const res = await fetch('/api/kb/documents');
-  const docs = await res.json();
-  $('docList').innerHTML = docs.map(d =>
-    `<li><span>${d.name}（${d.chunkCount} 块）</span><span class="del" onclick="delDoc(${d.id})">删除</span></li>`
-  ).join('') || '<li style="color:#9ca3af">暂无文档，先上传或等待示例库导入</li>';
+  try {
+    const res = await fetch('/api/kb/documents');
+    const docs = await res.json();
+    if (docs.error) throw new Error(docs.error);
+    $('docList').innerHTML = docs.map(d =>
+      `<li><span>${d.name}（${d.chunkCount} 块）</span><span class="del" onclick="delDoc(${d.id})">删除</span></li>`
+    ).join('') || '<li style="color:#9ca3af">暂无文档，先上传或等待示例库导入</li>';
+  } catch (e) {
+    $('docList').innerHTML = '<li style="color:#dc2626">加载失败：' + e.message + '</li>';
+  }
 }
 
 async function delDoc(id) {
-  await fetch('/api/kb/documents/' + id, { method: 'DELETE' });
-  refreshDocs();
+  try {
+    await fetch('/api/kb/documents/' + id, { method: 'DELETE' });
+    refreshDocs();
+  } catch (e) {
+    alert('删除失败：' + e.message);
+  }
 }
 
 async function ask() {
@@ -198,14 +211,18 @@ async function ask() {
     renderCites(botMsg, citations);
   } catch (e) {
     // SSE 失败时回退到普通 JSON 问答
-    const res2 = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: q })
-    });
-    const data = await res2.json();
-    bodyEl.textContent = data.answer;
-    renderCites(botMsg, data.rejected ? [] : data.citations);
+    try {
+      const res2 = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q })
+      });
+      const data = await res2.json();
+      bodyEl.textContent = data.error || data.answer || '请求失败';
+      renderCites(botMsg, data.rejected ? [] : (data.citations || []));
+    } catch (e2) {
+      bodyEl.textContent = '请求失败：' + (e2.message || '未知错误');
+    }
   }
 }
 
