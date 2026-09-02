@@ -62,9 +62,10 @@ public class RetrievalService {
             case KEYWORD -> keywordRetrieve(query);
             case HYBRID -> hybridRetrieve(query);
         };
-        double maxScore = hits.isEmpty() ? 0 : hits.get(0).score();
-        boolean confident = !hits.isEmpty()
-                && (maxScore >= rejectThreshold || hits.get(0).vectorScore() >= rejectThreshold);
+        // 拒答判定基于「最大向量相似度」：语义上是否真有相关内容。
+        // 不用混合分做阈值，避免 BM25 弱命中（如单个通用词）把分数虚高导致误判为有答案。
+        double maxVectorScore = hits.stream().mapToDouble(RetrievalHit::vectorScore).max().orElse(0);
+        boolean confident = !hits.isEmpty() && maxVectorScore >= rejectThreshold;
         return new RetrievalResult(query, hits, confident);
     }
 
@@ -156,13 +157,20 @@ public class RetrievalService {
         return chunkRepository.findById(chunkId).map(KbChunkEntity::toModel).orElse(null);
     }
 
+    /**
+     * BM25 平滑归一化到 0~1：norm = score / (score + k)。
+     * 相比 min-max，不会因为"只有 1~2 个弱命中"就把最高分顶到 1.0，
+     * 保留"弱命中得分低、强命中得分高"的绝对语义。
+     */
     private Map<String, Double> normalizeBm25(LinkedHashMap<String, Double> raw) {
         Map<String, Double> out = new HashMap<>();
-        if (raw.isEmpty()) return out;
-        double min = Collections.min(raw.values());
-        double max = Collections.max(raw.values());
+        if (raw.isEmpty()) {
+            return out;
+        }
+        double k = raw.values().stream().mapToDouble(Double::doubleValue).average().orElse(1.0);
+        k = Math.max(k, 1e-6);
         for (Map.Entry<String, Double> e : raw.entrySet()) {
-            double norm = (max - min) < 1e-9 ? 1.0 : (e.getValue() - min) / (max - min);
+            double norm = e.getValue() / (e.getValue() + k);
             out.put(e.getKey(), norm);
         }
         return out;

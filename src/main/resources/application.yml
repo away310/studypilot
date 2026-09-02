@@ -49,8 +49,10 @@ app:
     # 回答中引用分块是否保留全文
     include-chunk-text-in-prompt: true
   answer:
-    # 拒答阈值：top-1 相似度低于该值视为知识库无相关内容（0~1，越大越保守）
-    reject-threshold: 0.35
+    # 拒答阈值：基于 top 命中块的「最大向量相似度」。
+    # 实测（text-embedding-v3，中文）：相关知识 0.61~0.75，明显无关 0.34~0.40，
+    # 取 0.50 可干净分离。不用混合分做阈值，避免 BM25 弱命中把分数虚高。
+    reject-threshold: 0.50
 
 logging:
   level:
