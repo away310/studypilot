@@ -7,3 +7,8 @@ data/
 .vscode/
 .DS_Store
 chat_memory_history.json
+
+.playwright-cli/
+output/playwright/
+
+__pycache__/

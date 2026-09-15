@@ -1,0 +1,142 @@
+[
+  {
+    "question": "固定工作流和自主Agent的主要区别是什么？",
+    "expectedDocNames": [
+      "agent-01-architecture-loop.md"
+    ],
+    "evidenceHint": "谁决定运行路径"
+  },
+  {
+    "question": "如何防止Agent反复调用同一工具陷入死循环？",
+    "expectedDocNames": [
+      "agent-01-architecture-loop.md"
+    ],
+    "evidenceHint": "最大步数"
+  },
+  {
+    "question": "工具参数符合JSON Schema为什么仍然要校验权限？",
+    "expectedDocNames": [
+      "agent-02-tool-contracts.md"
+    ],
+    "evidenceHint": "资源归属"
+  },
+  {
+    "question": "工具超时后重试，怎样避免重复创建记录？",
+    "expectedDocNames": [
+      "agent-02-tool-contracts.md"
+    ],
+    "evidenceHint": "幂等键"
+  },
+  {
+    "question": "Spring AI如何通过@Tool和ChatClient.tools接入Java方法？",
+    "expectedDocNames": [
+      "agent-03-spring-ai-java.md"
+    ],
+    "evidenceHint": "ToolCallback"
+  },
+  {
+    "question": "Spring AI单例工具Bean为什么不应该保存当前用户身份？",
+    "expectedDocNames": [
+      "agent-03-spring-ai-java.md"
+    ],
+    "evidenceHint": "实例字段"
+  },
+  {
+    "question": "短期会话状态和长期记忆应该如何区分？",
+    "expectedDocNames": [
+      "agent-04-memory-context.md"
+    ],
+    "evidenceHint": "checkpointer"
+  },
+  {
+    "question": "压缩Agent对话历史时优先保留哪些信息？",
+    "expectedDocNames": [
+      "agent-04-memory-context.md"
+    ],
+    "evidenceHint": "已确认事实"
+  },
+  {
+    "question": "LangGraph的interrupt恢复后会不会重新执行节点前面的代码？",
+    "expectedDocNames": [
+      "agent-05-state-recovery.md"
+    ],
+    "evidenceHint": "从头运行"
+  },
+  {
+    "question": "外部写操作已成功但检查点还没保存时应该怎样恢复？",
+    "expectedDocNames": [
+      "agent-05-state-recovery.md"
+    ],
+    "evidenceHint": "operationId"
+  },
+  {
+    "question": "什么情况下不适合把任务拆成多个Agent并行执行？",
+    "expectedDocNames": [
+      "agent-06-multi-agent.md"
+    ],
+    "evidenceHint": "同一上下文"
+  },
+  {
+    "question": "多个Agent同时修改文件时怎么避免互相覆盖？",
+    "expectedDocNames": [
+      "agent-06-multi-agent.md"
+    ],
+    "evidenceHint": "互斥文件范围"
+  },
+  {
+    "question": "MCP和Function Calling分别解决什么问题？",
+    "expectedDocNames": [
+      "agent-07-mcp-security.md"
+    ],
+    "evidenceHint": "二者可以配合"
+  },
+  {
+    "question": "为什么MCP服务不应该做token passthrough？",
+    "expectedDocNames": [
+      "agent-07-mcp-security.md"
+    ],
+    "evidenceHint": "权限边界混淆"
+  },
+  {
+    "question": "Agentic RAG与固定RAG有什么区别？",
+    "expectedDocNames": [
+      "agent-08-rag-planning.md"
+    ],
+    "evidenceHint": "是否补查"
+  },
+  {
+    "question": "为什么查到主题相近的文档仍然可能无法回答问题？",
+    "expectedDocNames": [
+      "agent-08-rag-planning.md"
+    ],
+    "evidenceHint": "具体问题"
+  },
+  {
+    "question": "Agent评测中的pass@k和pass^k有什么区别？",
+    "expectedDocNames": [
+      "agent-09-evaluation-observability.md"
+    ],
+    "evidenceHint": "全部成功"
+  },
+  {
+    "question": "排查Agent的延迟和费用需要记录哪些运行指标？",
+    "expectedDocNames": [
+      "agent-09-evaluation-observability.md"
+    ],
+    "evidenceHint": "P95"
+  },
+  {
+    "question": "Agent从学习项目到部署上线可以分成哪些阶段？",
+    "expectedDocNames": [
+      "agent-10-production-roadmap.md"
+    ],
+    "evidenceHint": "第一阶段"
+  },
+  {
+    "question": "准备Agent项目答辩应该展示哪些证据？",
+    "expectedDocNames": [
+      "agent-10-production-roadmap.md"
+    ],
+    "evidenceHint": "失败恢复轨迹"
+  }
+]

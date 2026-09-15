@@ -19,7 +19,7 @@ public class EvalController {
         this.evalService = evalService;
     }
 
-    /** 跑内置评测集三组对比（向量 / 关键词 / 混合），返回 Recall@5 报告。 */
+    /** 跑内置评测集三组对比（向量 / 关键词 / 混合），返回 Hit@5 / Hit@1 报告。 */
     @GetMapping("/run")
     public List<EvalReport> run() throws IOException {
         return evalService.runDefaultEval();

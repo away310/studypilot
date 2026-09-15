@@ -6,10 +6,13 @@ import java.util.List;
 public record EvalReport(
         String mode,              // vector / keyword / hybrid
         int total,
-        double recallAt5,         // 期望文档出现在 top-5 的比例
+        double recallAt5,         // 兼容旧 API：值为 Hit@5，不是多文档 Recall
         double hitAt1,            // 期望文档出现在 top-1 的比例
         List<Detail> details
 ) {
+    @com.fasterxml.jackson.annotation.JsonProperty("hitAt5")
+    public double hitAt5() { return recallAt5; }
+
     public record Detail(String question, boolean hit, List<String> topDocs) {
     }
 }

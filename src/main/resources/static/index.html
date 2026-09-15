@@ -1,241 +1,247 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyPilot - 知识库问答</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif;
-      background: #f0f2f5; color: #1a1a1a; min-height: 100vh;
-      display: flex; flex-direction: column;
-    }
-    header {
-      background: #2563eb; color: #fff; padding: 14px 24px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    header h1 { font-size: 18px; font-weight: 600; }
-    .main { flex: 1; display: flex; gap: 16px; padding: 16px 24px; max-width: 1200px; width: 100%; margin: 0 auto; }
-    .side { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
-    .panel {
-      background: #fff; border-radius: 10px; padding: 14px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.08);
-    }
-    .panel h3 { font-size: 13px; color: #5c5f66; margin-bottom: 10px; }
-    input[type=file] { font-size: 12px; margin-bottom: 8px; }
-    button {
-      background: #2563eb; color: #fff; border: 0; border-radius: 6px;
-      padding: 7px 12px; font-size: 13px; cursor: pointer;
-    }
-    button:disabled { background: #a5b4fc; cursor: not-allowed; }
-    button.danger { background: #dc2626; }
-    .doc-list { list-style: none; font-size: 12.5px; }
-    .doc-list li {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 5px 0; border-bottom: 1px dashed #eee;
-    }
-    .doc-list .del { color: #dc2626; cursor: pointer; font-size: 12px; }
-    .chat {
-      flex: 1; display: flex; flex-direction: column; background: #fff;
-      border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); overflow: hidden;
-    }
-    .messages { flex: 1; overflow-y: auto; padding: 18px; }
-    .msg { margin-bottom: 14px; max-width: 85%; }
-    .msg .who { font-size: 11px; color: #9ca3af; margin-bottom: 3px; }
-    .msg .body {
-      padding: 10px 13px; border-radius: 10px; font-size: 14px; line-height: 1.6;
-      white-space: pre-wrap; word-break: break-word;
-    }
-    .msg.user { margin-left: auto; }
-    .msg.user .body { background: #2563eb; color: #fff; border-bottom-right-radius: 2px; }
-    .msg.bot .body { background: #f3f4f6; border-bottom-left-radius: 2px; }
-    .msg .cite {
-      font-size: 12px; color: #5c5f66; margin-top: 6px; background: #eef2ff;
-      border-radius: 6px; padding: 6px 9px; border-left: 3px solid #2563eb;
-    }
-    .msg .cite b { color: #2563eb; }
-    .inputbar { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #eee; }
-    .inputbar input {
-      flex: 1; border: 1px solid #d1d5db; border-radius: 8px; padding: 9px 12px; font-size: 14px; outline: none;
-    }
-    .inputbar input:focus { border-color: #2563eb; }
-    .hint { font-size: 11.5px; color: #9ca3af; padding: 0 12px 10px; }
-    .eval { margin-top: 6px; font-size: 12.5px; }
-    .eval table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-    .eval td, .eval th { border: 1px solid #e5e7eb; padding: 4px 6px; font-size: 12px; text-align: left; }
-    .eval th { background: #f9fafb; }
-  </style>
-</head>
-<body>
-<header>
-  <h1>📚 StudyPilot · 知识库问答 Agent</h1>
-  <button onclick="runEval()" id="evalBtn">跑检索评测（Recall@5）</button>
-</header>
-
-<div class="main">
-  <div class="side">
-    <div class="panel">
-      <h3>上传文档（md / txt / pdf）</h3>
-      <input type="file" id="file" accept=".md,.markdown,.txt,.pdf" multiple>
-      <button onclick="upload()">入库</button>
-    </div>
-    <div class="panel">
-      <h3>知识库文档</h3>
-      <ul class="doc-list" id="docList"></ul>
-    </div>
-    <div class="panel eval">
-      <h3>评测结果（20 条评测集）</h3>
-      <div id="evalResult">点击右上角按钮运行</div>
-    </div>
-  </div>
-
-  <div class="chat">
-    <div class="messages" id="messages"></div>
-    <div class="inputbar">
-      <input id="question" placeholder="输入问题，例如：混合检索是哪两条通道？怎么融合？" onkeydown="if(event.key==='Enter')ask()">
-      <button onclick="ask()">发送</button>
-    </div>
-    <div class="hint">回答中的 [n] 为引用编号，对应下方"引用来源"；知识库无相关内容时会直接拒答。</div>
-  </div>
-</div>
-
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><meta name="theme-color" content="#242039"><title>StudyPilot · 让知识与你对话</title><link rel="stylesheet" href="app.css?v=20260915"></head><body><div class="app-shell">
+<aside class="side" id="sidebar"><div class="brand"><div class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1Z"/><path d="M12 6v14"/></svg></div><div><div class="brand-name">StudyPilot</div><div class="brand-sub">A SPACE FOR YOUR MIND</div></div></div>
+<button class="new-chat" onclick="newChat()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>新对话</span></button>
+<section class="panel upload-panel"><div class="rail-label">添加学习资料 <span>UPLOAD</span></div><label class="upload-zone" id="dropZone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m-4 4 4-4 4 4M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg><div><strong>点击选择或拖入文档</strong><small>MD / TXT / PDF · 最大 20 MB</small></div><input type="file" id="file" aria-label="选择学习文档" accept=".md,.markdown,.txt,.pdf" multiple></label><div class="upload-actions"><p id="fileHint">把零散笔记，变成你的知识库</p><button id="uploadBtn" onclick="upload()">入库</button></div></section>
+<section class="panel docs-panel"><div class="rail-label">我的知识库 <span id="docCount">—</span></div><ul class="doc-list" id="docList"><li>正在加载文档…</li></ul></section>
+<section class="panel eval"><h3 id="evalTitle">检索评测</h3><div id="evalResult">了解知识库的检索表现<br>点击右上角「检索评测」开始</div></section>
+<div class="rail-footer"><div class="avatar">我</div><div><strong>个人学习空间</strong><small>在这里，积累每一点好奇</small></div><i class="local-dot" title="本地工作区"></i></div></aside>
+<main class="workspace"><header class="topbar"><div class="breadcrumb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1Z"/><path d="M12 6v14"/></svg><span>工作空间</span><span>/</span><strong>知识库问答</strong></div><div class="top-actions"><span class="connection" id="connection">连接知识库…</span><button class="mobile-toggle" onclick="toggleLibrary()" aria-controls="sidebar" aria-expanded="false" id="libraryToggle">文档</button><button class="eval-button" onclick="runEval()" id="evalBtn" aria-label="跑检索评测（Hit@5）"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V4m7 15v-6"/></svg><span>检索评测</span></button><button class="logout-button" onclick="logout()" id="logoutBtn" aria-label="退出登录"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 12H4m0 0 3.5-3.5M4 12l3.5 3.5"/><path d="M12 7V5.5A1.5 1.5 0 0 1 13.5 4h5A1.5 1.5 0 0 1 20 5.5v13A1.5 1.5 0 0 1 18.5 20h-5A1.5 1.5 0 0 1 12 18.5V17"/></svg><span>退出</span></button></div></header>
+<section class="chat"><div class="chat-heading"><div><h1>与知识对话</h1><p id="workspaceStats">你的笔记，值得被更好地理解。</p></div><div class="scope-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/></svg>基于你的知识库</div></div>
+<div class="messages" id="messages"><div class="welcome" id="welcome"><div class="hero-art"><div class="hero-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/></svg></div></div><div class="eyebrow">LESS SEARCHING. MORE UNDERSTANDING.</div><h2>让知识，<span>与你对话。</span></h2><p>上传你的课程笔记、技术文档或学习资料，<br>从一个好问题开始，发现知识之间的联系。</p><div class="suggestions">
+<button class="suggestion" onclick="suggest('混合检索是哪两条通道？怎么融合？')"><span class="tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 1-8 8H4v-7a8 8 0 1 1 16-1Z"/><path d="M8 10h8m-8 4h5"/></svg></span><strong>理解一个概念</strong><p>混合检索是如何工作的？</p><span class="arrow">↗</span></button>
+<button class="suggestion" onclick="suggest('Java 21 虚拟线程适合什么场景？有哪些注意事项？')"><span class="tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1Z"/><path d="M12 6v14"/></svg></span><strong>梳理学习重点</strong><p>Java 21 虚拟线程有哪些要点？</p><span class="arrow">↗</span></button>
+<button class="suggestion" onclick="suggest('缓存穿透、击穿和雪崩有什么区别？分别如何处理？')"><span class="tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9m7 10V4m7 15v-6"/></svg></span><strong>对比与深入思考</strong><p>几种缓存问题有什么不同？</p><span class="arrow">↗</span></button></div><div class="welcome-foot">每一次提问，都是理解的下一步。</div></div></div>
+<div class="composer-area"><div class="composer"><div class="inputbar"><textarea rows="2" id="question" aria-label="输入问题" maxlength="4000" placeholder="有什么想了解的？向你的知识库提问…" onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();ask()}"></textarea></div><div class="composer-tools"><span class="composer-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1Z"/><path d="M12 6v14"/></svg><span>从你的资料中寻找答案</span></span><div class="send-actions"><button class="stop-button" id="stopBtn" onclick="activeChat?.abort()" disabled>停止</button><button class="send-button" id="sendBtn" onclick="ask()" aria-label="发送"><span>发送</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-5 5 5-5 5 5"/></svg></button></div></div></div><div class="hint">Enter 发送 · Shift + Enter 换行 &nbsp; | &nbsp; 回答附带引用，请结合原文核对。</div></div></section></main></div><div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 const $ = id => document.getElementById(id);
+/* ===== 登录态处理：401 自动跳登录页 + 退出登录 ===== */
+(function () {
+  const rawFetch = window.fetch.bind(window);
+  window.fetch = async function (...args) {
+    const res = await rawFetch(...args);
+    if (res.status === 401) {
+      location.replace('login.html');
+      throw new Error('未登录');
+    }
+    return res;
+  };
+})();
+function logout() {
+  fetch('api/auth/logout', { method: 'POST', headers: { Accept: 'application/json' } })
+    .catch(() => {})
+    .finally(() => location.replace('login.html'));
+}
+let activeChat = null;
+const welcomeTemplate = $('welcome').outerHTML;
+let toastTimer;
+function notify(message) { $('toast').textContent = message; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 6000); }
+function suggest(question) { $('question').value = question; $('question').focus(); }
+function toggleLibrary() { const open = $('sidebar').classList.toggle('mobile-library'); $('libraryToggle').setAttribute('aria-expanded', String(open)); }
+function newChat() { if (activeChat) { notify('请先停止当前回答，再开始新对话'); return; } $('messages').innerHTML = welcomeTemplate; $('question').value = ''; $('question').focus(); }
 
 function addMsg(who, text, cites) {
-  const box = $('messages');
+  $('welcome')?.remove();
   const div = document.createElement('div');
   div.className = 'msg ' + who;
-  div.innerHTML = `<div class="who">${who === 'user' ? '你' : 'StudyPilot'}</div>
-    <div class="body"></div>`;
-  div.querySelector('.body').textContent = text;
-  if (cites && cites.length) {
-    const c = document.createElement('div');
-    c.className = 'cite';
-    c.innerHTML = cites.map((h, i) =>
-      `<div><b>[${i + 1}]</b> ${h.chunk.docName}${h.chunk.headingPath ? ' · ' + h.chunk.headingPath : ''}</div>`
-    ).join('');
-    div.appendChild(c);
-  }
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
+  const label = document.createElement('div');
+  label.className = 'who';
+  label.textContent = who === 'user' ? '你' : 'StudyPilot';
+  const body = document.createElement('div');
+  body.className = 'body';
+  body.textContent = text;
+  div.append(label, body);
+  $('messages').appendChild(div);
+  renderCites(div, cites);
+  return div;
+}
+
+async function readJson(response) {
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'HTTP ' + response.status);
+  return data;
 }
 
 async function upload() {
-  const file = $('file').files[0];
-  if (!file) return alert('请先选择文件');
-  const fd = new FormData();
-  fd.append('file', file);
+  const files = Array.from($('file').files);
+  if (!files.length) return notify('请先选择文件');
+  $('uploadBtn').disabled = true;
+  $('uploadBtn').textContent = '处理中…';
+  const results = [];
   try {
-    const res = await fetch('/api/kb/documents', { method: 'POST', body: fd });
-    const data = await res.json();
-    alert(data.error ? '失败: ' + data.error : `入库成功：${data.name}，切分为 ${data.chunkCount} 块`);
-    refreshDocs();
-  } catch (e) {
-    alert('上传失败：' + e.message);
+    for (const file of files) {
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        const data = await readJson(await fetch('api/kb/documents', {method: 'POST', body: fd}));
+        results.push(`${data.name}：成功，${data.chunkCount} 块`);
+      } catch (e) {
+        results.push(`${file.name}：失败，${e.message}`);
+      }
+    }
+    await refreshDocs();
+    notify(results.join('\n'));
+  } finally {
+    $('uploadBtn').disabled = false;
+    $('uploadBtn').textContent = '入库';
   }
 }
 
 async function refreshDocs() {
+  const list = $('docList');
   try {
-    const res = await fetch('/api/kb/documents');
-    const docs = await res.json();
-    if (docs.error) throw new Error(docs.error);
-    $('docList').innerHTML = docs.map(d =>
-      `<li><span>${d.name}（${d.chunkCount} 块）</span><span class="del" onclick="delDoc(${d.id})">删除</span></li>`
-    ).join('') || '<li style="color:#9ca3af">暂无文档，先上传或等待示例库导入</li>';
+    const docs = await readJson(await fetch('api/kb/documents'));
+    list.replaceChildren();
+    $('docCount').textContent = docs.length;
+    $('workspaceStats').textContent = `${docs.length} 篇文档 · ${docs.reduce((n, d) => n + d.chunkCount, 0)} 个知识片段，等待你的探索。`;
+    $('connection').textContent = '知识库已连接';
+    $('connection').classList.add('online');
+    for (const doc of docs) {
+      const row = document.createElement('li');
+      const name = document.createElement('span');
+      name.className = 'doc-info';
+      const title = document.createElement('span');
+      title.className = 'doc-name';
+      title.textContent = doc.name;
+      title.title = doc.name;
+      const meta = document.createElement('span');
+      meta.className = 'doc-meta';
+      meta.textContent = `${doc.chunkCount} 个片段`;
+      name.append(title, meta);
+      const fileIcon = document.createElement('span');
+      fileIcon.className = 'doc-icon';
+      fileIcon.textContent = ({pdf:'PDF', txt:'TXT', md:'MD', markdown:'MD'})[doc.name.split('.').pop().toLowerCase()] || 'DOC';
+      const remove = document.createElement('button');
+      remove.className = 'danger';
+      remove.textContent = '删除';
+      remove.onclick = () => delDoc(doc.id, remove);
+      row.append(fileIcon, name, remove);
+      list.appendChild(row);
+    }
+    if (!docs.length) list.textContent = '暂无文档，请先上传';
   } catch (e) {
-    $('docList').innerHTML = '<li style="color:#dc2626">加载失败：' + e.message + '</li>';
+    list.textContent = '加载失败：' + e.message;
+    $('connection').textContent = '知识库暂未连接';
+    $('connection').classList.remove('online');
   }
 }
 
-async function delDoc(id) {
+async function delDoc(id, button) {
+  button.disabled = true;
   try {
-    await fetch('/api/kb/documents/' + id, { method: 'DELETE' });
-    refreshDocs();
+    await readJson(await fetch('api/kb/documents/' + id, {method: 'DELETE'}));
+    await refreshDocs();
   } catch (e) {
-    alert('删除失败：' + e.message);
+    notify('删除失败：' + e.message);
+    button.disabled = false;
   }
+}
+
+// 按 SSE 的 event/data 字段解码，JSON 字符串中的换行不会破坏事件边界。
+function parseEvent(frame) {
+  let event = 'message';
+  const data = [];
+  for (const line of frame.split(/\r?\n/)) {
+    if (line.startsWith(':')) continue;
+    const colon = line.indexOf(':');
+    const field = colon < 0 ? line : line.slice(0, colon);
+    let value = colon < 0 ? '' : line.slice(colon + 1);
+    if (value.startsWith(' ')) value = value.slice(1);
+    if (field === 'event') event = value;
+    if (field === 'data') data.push(value);
+  }
+  return data.length ? {event, data: JSON.parse(data.join('\n'))} : null;
 }
 
 async function ask() {
   const q = $('question').value.trim();
-  if (!q) return;
+  if (!q || activeChat) return;
+  if (q.length > 4000) return notify('问题不能超过 4000 个字符');
   $('question').value = '';
   addMsg('user', q);
-
-  // 放一条空 bot 消息，SSE 逐段填充（打字机效果）
-  const botMsg = addMsg('bot', '');
+  const botMsg = addMsg('bot', '正在检索…');
   const bodyEl = botMsg.querySelector('.body');
-  bodyEl.textContent = '';
-
+  const controller = new AbortController();
+  activeChat = controller;
+  $('sendBtn').disabled = true;
+  $('stopBtn').disabled = false;
+  let reader;
+  let completed = false;
+  let received = false;
+  const showAnswer = answer => {
+    bodyEl.textContent = answer.answer;
+    renderCites(botMsg, answer.rejected ? [] : answer.citations);
+    completed = true;
+  };
   try {
-    const res = await fetch('/api/chat/stream', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: q })
-    });
-    if (!res.ok || !res.body) throw new Error('HTTP ' + res.status);
-
-    const reader = res.body.getReader();
+    const options = {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: q}), signal: controller.signal};
+    const res = await fetch('api/chat/stream', options);
+    // 仅接口不支持时回退；生成中断不自动再调用一次付费模型。
+    if (res.status === 404 || res.status === 405) {
+      showAnswer(await readJson(await fetch('api/chat', options)));
+      return;
+    }
+    if (!res.ok) {
+      await readJson(res);
+      throw new Error('HTTP ' + res.status);
+    }
+    if (!res.body) throw new Error('浏览器不支持流式响应');
+    reader = res.body.getReader();
     const decoder = new TextDecoder();
-    let citations = null;
-    let buf = '';
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      const parts = buf.split('\n\n');
-      buf = parts.pop();
-      for (const part of parts) {
-        for (const line of part.split('\n')) {
-          if (line.startsWith('data: ')) {
-            const payload = line.slice(6);
-            if (payload.startsWith('{')) {
-              const meta = JSON.parse(payload);
-              citations = meta.citations || [];
-              if (meta.rejected) {
-                bodyEl.textContent = '抱歉，知识库中未找到相关内容。';
-                renderCites(botMsg, citations);
-                return;
-              }
-            } else {
-              bodyEl.textContent += payload;
-              scrollChat();
-            }
-          }
+    let buffer = '';
+    while (!completed) {
+      const {done, value} = await reader.read();
+      buffer += done ? decoder.decode() : decoder.decode(value, {stream: true});
+      let match;
+      while ((match = /\r?\n\r?\n/.exec(buffer)) !== null) {
+        const frame = buffer.slice(0, match.index);
+        buffer = buffer.slice(match.index + match[0].length);
+        const message = parseEvent(frame);
+        if (!message) continue;
+        if (message.event === 'delta') {
+          if (!received) bodyEl.textContent = '';
+          received = true;
+          bodyEl.textContent += message.data.text;
+          scrollChat();
+        } else if (message.event === 'done') {
+          showAnswer(message.data);
+          break;
+        } else if (message.event === 'error') {
+          throw new Error(message.data.message || '生成中断');
         }
       }
+      if (done) break;
     }
-    renderCites(botMsg, citations);
+    if (!completed) throw new Error('响应提前结束，答案尚未完成校验');
   } catch (e) {
-    // SSE 失败时回退到普通 JSON 问答
-    try {
-      const res2 = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: q })
-      });
-      const data = await res2.json();
-      bodyEl.textContent = data.error || data.answer || '请求失败';
-      renderCites(botMsg, data.rejected ? [] : (data.citations || []));
-    } catch (e2) {
-      bodyEl.textContent = '请求失败：' + (e2.message || '未知错误');
-    }
+    const message = e.name === 'AbortError' ? '已停止生成' : '请求失败：' + e.message;
+    bodyEl.textContent = received ? bodyEl.textContent + '\n\n[' + message + '，以上为未校验片段]' : message;
+  } finally {
+    if (reader) { try { await reader.cancel(); } catch (_) {} }
+    activeChat = null;
+    $('sendBtn').disabled = false;
+    $('stopBtn').disabled = true;
+    scrollChat();
   }
 }
 
 function renderCites(botMsg, citations) {
-  const old = botMsg.querySelector('.cite');
-  if (old) old.remove();
-  if (citations && citations.length) {
-    const c = document.createElement('div');
-    c.className = 'cite';
-    c.innerHTML = citations.map((h, i) =>
-      `<div><b>[${i + 1}]</b> ${h.doc}${h.section ? ' · ' + h.section : ''}</div>`
-    ).join('');
-    botMsg.appendChild(c);
+  botMsg.querySelector('.cite')?.remove();
+  if (citations?.length) {
+    const container = document.createElement('div');
+    container.className = 'cite';
+    for (const [i, hit] of citations.entries()) {
+      const chunk = hit.chunk || {docName: hit.doc, headingPath: hit.section, content: ''};
+      const item = document.createElement('details');
+      const title = document.createElement('summary');
+      title.textContent = `[${i + 1}] ${chunk.docName || ''}${chunk.headingPath ? ' · ' + chunk.headingPath : ''}`;
+      const excerpt = document.createElement('div');
+      excerpt.textContent = chunk.content || '暂无片段正文';
+      excerpt.style.whiteSpace = 'pre-wrap';
+      item.append(title, excerpt);
+      container.appendChild(item);
+    }
+    botMsg.appendChild(container);
   }
   scrollChat();
 }
@@ -245,26 +251,39 @@ function scrollChat() {
 }
 
 async function runEval() {
+  if (window.matchMedia('(max-width:760px)').matches) { $('sidebar').classList.add('mobile-library'); $('libraryToggle').setAttribute('aria-expanded', 'true'); }
   $('evalBtn').disabled = true;
   $('evalBtn').textContent = '评测运行中…';
   try {
-    const res = await fetch('/api/eval/run');
-    const reports = await res.json();
-    let html = '<table><tr><th>模式</th><th>Recall@5</th><th>Top1 命中</th></tr>';
-    for (const r of reports) {
-      const name = { vector: '纯向量', keyword: '纯关键词', hybrid: '混合检索' }[r.mode] || r.mode;
-      html += `<tr><td>${name}</td><td>${(r.recallAt5 * 100).toFixed(1)}%</td><td>${(r.hitAt1 * 100).toFixed(1)}%</td></tr>`;
+    const reports = await readJson(await fetch('api/eval/run'));
+    const table = document.createElement('table');
+    const row = values => {
+      const tr = document.createElement('tr');
+      for (const value of values) {
+        const td = document.createElement('td');
+        td.textContent = value;
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    };
+    row(['模式', 'Hit@5', 'Hit@1']);
+    for (const report of reports) {
+      row([{vector:'纯向量', keyword:'纯关键词', hybrid:'混合检索'}[report.mode] || report.mode,
+        ((report.hitAt5 ?? report.recallAt5) * 100).toFixed(1) + '%', (report.hitAt1 * 100).toFixed(1) + '%']);
     }
-    html += '</table>';
-    $('evalResult').innerHTML = html;
+    $('evalTitle').textContent = `检索评测（${reports[0]?.total || 0} 条）`;
+    $('evalResult').replaceChildren(table);
   } catch (e) {
     $('evalResult').textContent = '评测失败：' + e.message;
+  } finally {
+    $('evalBtn').disabled = false;
+    $('evalBtn').textContent = '检索评测';
   }
-  $('evalBtn').disabled = false;
-  $('evalBtn').textContent = '跑检索评测（Recall@5）';
 }
 
+$('file').addEventListener('change', () => { const files = Array.from($('file').files); $('fileHint').textContent = files.length ? `已选择 ${files.length} 个文件` : '把零散笔记，变成你的知识库'; });
+for (const event of ['dragenter', 'dragover']) $('dropZone').addEventListener(event, e => { e.preventDefault(); $('dropZone').classList.add('dragover'); });
+for (const event of ['dragleave', 'drop']) $('dropZone').addEventListener(event, e => { e.preventDefault(); $('dropZone').classList.remove('dragover'); if (event === 'drop' && e.dataTransfer.files.length) { $('file').files = e.dataTransfer.files; $('file').dispatchEvent(new Event('change')); } });
 refreshDocs();
 </script>
-</body>
-</html>
+</body></html>

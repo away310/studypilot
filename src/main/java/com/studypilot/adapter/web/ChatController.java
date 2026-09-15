@@ -18,9 +18,10 @@ public class ChatController {
     /** RAG 问答（普通 JSON 返回；Web 页使用 /api/chat/stream SSE）。 */
     @PostMapping
     public AnswerService.AnswerResult ask(@RequestBody Map<String, String> body) {
-        String question = body.getOrDefault("question", "").strip();
-        if (question.isEmpty()) {
-            return new AnswerService.AnswerResult("", "问题不能为空", java.util.List.of(), true);
+        String question = body.get("question");
+        question = question == null ? "" : question.strip();
+        if (question.isEmpty() || question.length() > 4000) {
+            throw new IllegalArgumentException("问题需为 1 到 4000 个字符");
         }
         return answerService.answer(question);
     }

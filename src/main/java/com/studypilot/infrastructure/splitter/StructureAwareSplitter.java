@@ -17,6 +17,9 @@ public class StructureAwareSplitter {
     private final int overlapChars;
 
     public StructureAwareSplitter(int maxChunkChars, int overlapChars) {
+        if (maxChunkChars <= 0 || overlapChars < 0 || overlapChars >= maxChunkChars) {
+            throw new IllegalArgumentException("切分参数必须满足 0 <= overlap < maxChunkChars");
+        }
         this.maxChunkChars = maxChunkChars;
         this.overlapChars = overlapChars;
     }
@@ -79,11 +82,7 @@ public class StructureAwareSplitter {
                 break;
             }
             // 滑动窗口：重叠 overlapChars 字符，同时保证能前进
-            start = Math.min(text.length(), start + maxChunkChars - overlapChars);
-            if (start <= end - maxChunkChars + overlapChars) {
-                // 防止极端情况不前进
-                start = Math.max(start, end - overlapChars + 1);
-            }
+            start = end - overlapChars;
             if (start >= text.length()) break;
         }
         return out;

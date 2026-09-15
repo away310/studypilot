@@ -14,7 +14,8 @@ import java.util.List;
 
 /**
  * 检索评测执行器：同一评测集分别跑 向量 / 关键词 / 混合 三种模式，
- * 输出 Recall@5 与 top-1 命中率，供简历量化对比（消融实验）。
+ * 输出文档级 Hit@5 与 Hit@1；前五个块命中任一期望文档即算成功。
+ * referenceAnswer 仅供人工核对，当前不自动评估答案正确性。
  *
  * 评测集格式（eval/eval-set.json）：
  * [{"question":"...","expectedDocNames":["xxx.md"],"referenceAnswer":"..."}]

@@ -1,0 +1,7 @@
+{
+  "host": "47.97.157.68",
+  "release": "20260915T034206Z",
+  "jar_sha256": "c2552b21d8d11f0dc6caeaa7ecf5190994c61584a452574c9425379d5c266c46",
+  "original_site_sha256": "a4c7d2e0c37968a4c8dcaf3e8c67c5e4d6d865833013af640f7991a5da0ce32b",
+  "nginx_backup": "/opt/studypilot/backups/vibecoding-20260915T034206Z.conf"
+}

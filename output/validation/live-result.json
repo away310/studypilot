@@ -1,0 +1,1451 @@
+{
+  "timestamp": "2026-09-14T14:40:15.811224+00:00",
+  "scope": "real DashScope, sample corpus, isolated database",
+  "uploads": [
+    {
+      "file": "agent-function-calling.md",
+      "sha256": "dd6592dd080f4a65851250c7f91720aa5d2d3ff619d083d58b54a1b8c03b6ca7",
+      "chunks": 5,
+      "seconds": 7.125
+    },
+    {
+      "file": "java-collections.md",
+      "sha256": "37d9a38d90f03dfc1be3058f55bf5b8fe9137e05f8c39769a595bdc8d744b7d1",
+      "chunks": 5,
+      "seconds": 2.469
+    },
+    {
+      "file": "java21-concurrency.md",
+      "sha256": "0751d042b64a24c81dc2d611b007fbbdaa16b59172367af61c6f822dd960521e",
+      "chunks": 5,
+      "seconds": 2.344
+    },
+    {
+      "file": "mq-distributed-transaction.md",
+      "sha256": "11ffa7b59780d1a2ba6b2adc7658892e63b05f470b439970e09da85c1cd3c784",
+      "chunks": 5,
+      "seconds": 2.266
+    },
+    {
+      "file": "mysql-index-transaction.md",
+      "sha256": "f0859dd838dfa9f662927d0dbd84f06033c6ef18591b35eb59864a5e5d365ec5",
+      "chunks": 5,
+      "seconds": 1.828
+    },
+    {
+      "file": "redis-cache-lock.md",
+      "sha256": "246c1ae329ce435e1969b97df57979b296f416829b8071ea703109ba1142c103",
+      "chunks": 5,
+      "seconds": 2.39
+    },
+    {
+      "file": "spring-ai-rag-notes.md",
+      "sha256": "7628a5a00f59a85b8d5e53102299ac47f278995125e550a826ad895961429a52",
+      "chunks": 8,
+      "seconds": 3.157
+    },
+    {
+      "file": "spring-web-api-design.md",
+      "sha256": "8c68f1bbf0beaba07ef730a92e7f86bd2166932ffe30dc725fdaef24eda80628",
+      "chunks": 5,
+      "seconds": 1.688
+    }
+  ],
+  "answers": [
+    {
+      "case": "answerable",
+      "expected_rejected": false,
+      "passed": true,
+      "seconds": 10.953,
+      "result": {
+        "question": "混合检索是哪两条通道？怎么融合？",
+        "answer": "混合检索的两条通道是：**向量通道（语义检索）** 和 **BM25 关键词通道（精确匹配检索）** [1]。\n\n融合方式分为两个阶段：\n\n1. **召回阶段融合**：  \n   向量通道取 top-20 结果，BM25 通道也取 top-20 结果，然后对两组结果取**并集**（去重合并）[2]。\n\n2. **排序阶段融合（融合排序）**：  \n   对并集后的候选文档进行重排，常用方法有两种：  \n   - **线性加权融合**：按预设权重对各通道得分加权求和（例如向量得分 × 0.6 + BM25 得分 × 0.4）；  \n   - **RRF（Reciprocal Rank Fusion）**：对每个文档在各通道中的排名取倒数后求和，按总和降序排列 [2]。\n\n最终从融合排序结果中取 **top-5** 作为精排后上下文，用于后续生成 [2]。",
+        "citations": [
+          {
+            "chunk": {
+              "id": "7-3",
+              "docId": 7,
+              "docName": "spring-ai-rag-notes.md",
+              "headingPath": "Spring AI RAG 实现要点 / 二、RAG 流水线的四个阶段 / 3. 向量化与检索（Embedding & Retrieval）",
+              "seq": 3,
+              "content": "切好的块调用 Embedding 模型（如 text-embedding-v3）转成向量入库。提问时把问题也转成向量，做余弦相似度检索取 top-k。\n单靠向量检索的问题：对专有名词、代码、精确术语的匹配不够稳，所以工程上常做\"混合检索\"——向量检索（语义）+ 关键词检索（BM25，精确匹配）双通道召回后融合排序。"
+            },
+            "score": 0.697618679739126,
+            "vectorScore": 0.613598101340603,
+            "keywordScore": 0.8236495473369102,
+            "vectorRank": 2,
+            "keywordRank": 3
+          },
+          {
+            "chunk": {
+              "id": "7-5",
+              "docId": 7,
+              "docName": "spring-ai-rag-notes.md",
+              "headingPath": "Spring AI RAG 实现要点 / 三、混合检索与重排",
+              "seq": 5,
+              "content": "- 召回阶段：向量通道取 top-20，BM25 通道取 top-20，取并集；\n- 融合排序：按权重线性加权（如向量 0.6 + 关键词 0.4），或 RRF 按排名倒数求和；\n- 精排：融合后取 top-5 作为最终上下文，控制 token 成本同时保住召回率。"
+            },
+            "score": 0.7272713375048538,
+            "vectorScore": 0.6485789731080966,
+            "keywordScore": 0.8453098840999898,
+            "vectorRank": 1,
+            "keywordRank": 2
+          }
+        ],
+        "rejected": false
+      }
+    },
+    {
+      "case": "same_topic_unanswerable",
+      "expected_rejected": true,
+      "passed": true,
+      "seconds": 3.437,
+      "result": {
+        "question": "2026年9月14日我公司的Redis生产集群故障根因是什么？请给出具体节点和日志证据。",
+        "answer": "资料中未涉及，当前参考资料不足以回答这个问题。",
+        "citations": [],
+        "rejected": true
+      }
+    },
+    {
+      "case": "unrelated",
+      "expected_rejected": true,
+      "passed": true,
+      "seconds": 1.953,
+      "result": {
+        "question": "明天上海是否下雨？",
+        "answer": "抱歉，我在当前知识库中没有找到与这个问题相关的内容。你可以换一种问法，或先上传相关文档后再提问。",
+        "citations": [],
+        "rejected": true
+      }
+    }
+  ],
+  "retrieval_eval": [
+    {
+      "mode": "vector",
+      "total": 38,
+      "recallAt5": 1.0,
+      "hitAt1": 0.9736842105263158,
+      "details": [
+        {
+          "question": "RAG 是什么？解决什么问题？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "把文档变成向量之前要先做什么处理？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "按什么切块能让每个片段自带章节上下文？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-web-api-design.md",
+            "spring-web-api-design.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "检索阶段同时用向量和关键词两条路是什么做法？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "怎么衡量检索有没有召回对的文档？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "mysql-index-transaction.md",
+            "spring-web-api-design.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "embedding 为什么只算一次还要求归一化？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md",
+            "java-collections.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "中文关键词搜索一般用什么工具做分词和打分？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "agent 里模型想用工具时返回什么？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "工具描述写清楚为什么能提高准确率？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "mysql-index-transaction.md",
+            "java-collections.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "很多工具时怎么避免一堆 if-else？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "java-collections.md",
+            "java-collections.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "agent 拆多个角色各干各的是哪种架构思想？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "工具执行失败如何不影响整条对话？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "spring-web-api-design.md",
+            "agent-function-calling.md",
+            "mq-distributed-transaction.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "线程池里长期保活不销毁的线程叫什么？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "redis-cache-lock.md",
+            "java21-concurrency.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "多个独立 RPC 怎么并发查完再合并？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "mq-distributed-transaction.md",
+            "java21-concurrency.md",
+            "redis-cache-lock.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "Java 21 用什么机制让高并发 IO 不爆线程？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "为什么线程池里 ThreadLocal 要小心？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java-collections.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "异步任务除了 @Async 还可以接什么组件削峰？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "spring-web-api-design.md",
+            "java21-concurrency.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "数据库底层 B+ 树为什么查询快？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "spring-web-api-design.md",
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md"
+          ]
+        },
+        {
+          "question": "like 查询怎么写会走不了索引？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "spring-web-api-design.md",
+            "spring-ai-rag-notes.md",
+            "mysql-index-transaction.md"
+          ]
+        },
+        {
+          "question": "事务的隔离级别默认是哪个？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "mq-distributed-transaction.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "防止幻读主要靠什么锁？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "热点 key 过期瞬间大量请求打库叫什么？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "redis-cache-lock.md",
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "大量 key 同时过期把库打崩是哪个问题？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "查一个不存在的 key 导致请求穿透到数据库怎么处理？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "set nx ex 里 nx 和 ex 分别解决什么问题？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "排行榜用什么 Redis 结构实现？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "redis-cache-lock.md",
+            "spring-ai-rag-notes.md",
+            "redis-cache-lock.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "消息队列核心解决哪三个问题？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "kafka 里保证不丢消息消费端要怎么做？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md",
+            "java21-concurrency.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "mq 可能重复投递，消费方靠什么保证不重复处理？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md",
+            "mysql-index-transaction.md"
+          ]
+        },
+        {
+          "question": "本地消息表加定时补偿属于什么一致性方案？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "spring-web-api-design.md",
+            "mq-distributed-transaction.md",
+            "redis-cache-lock.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "controller 里为什么不能写 SQL？",
+          "hit": true,
+          "topDocs": [
+            "spring-web-api-design.md",
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "agent-function-calling.md",
+            "mysql-index-transaction.md"
+          ]
+        },
+        {
+          "question": "前端重复点提交怎么防止下两次单？",
+          "hit": true,
+          "topDocs": [
+            "spring-web-api-design.md",
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md",
+            "spring-web-api-design.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "llm 回答一段段吐出来用哪种接口实现？",
+          "hit": true,
+          "topDocs": [
+            "spring-web-api-design.md",
+            "mq-distributed-transaction.md",
+            "mysql-index-transaction.md",
+            "spring-web-api-design.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "上传的文件为什么先落临时目录？",
+          "hit": true,
+          "topDocs": [
+            "spring-web-api-design.md",
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md",
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md"
+          ]
+        },
+        {
+          "question": "随机访问快、尾部增删快的集合是哪个？",
+          "hit": true,
+          "topDocs": [
+            "java-collections.md",
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md",
+            "spring-ai-rag-notes.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "多线程下要用的安全 Map 是哪个？",
+          "hit": true,
+          "topDocs": [
+            "java-collections.md",
+            "java21-concurrency.md",
+            "java-collections.md",
+            "java21-concurrency.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "linkedhashmap 怎么做成 lru？",
+          "hit": true,
+          "topDocs": [
+            "java-collections.md",
+            "java-collections.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "日期格式化用什么类最安全？",
+          "hit": true,
+          "topDocs": [
+            "java-collections.md",
+            "redis-cache-lock.md",
+            "redis-cache-lock.md",
+            "java-collections.md",
+            "mysql-index-transaction.md"
+          ]
+        }
+      ],
+      "hitAt5": 1.0
+    },
+    {
+      "mode": "keyword",
+      "total": 38,
+      "recallAt5": 1.0,
+      "hitAt1": 0.9473684210526315,
+      "details": [
+        {
+          "question": "RAG 是什么？解决什么问题？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md",
+            "mysql-index-transaction.md",
+            "spring-ai-rag-notes.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "把文档变成向量之前要先做什么处理？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-web-api-design.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "按什么切块能让每个片段自带章节上下文？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "检索阶段同时用向量和关键词两条路是什么做法？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "怎么衡量检索有没有召回对的文档？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "mq-distributed-transaction.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "embedding 为什么只算一次还要求归一化？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "mysql-index-transaction.md",
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "中文关键词搜索一般用什么工具做分词和打分？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "agent 里模型想用工具时返回什么？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "工具描述写清楚为什么能提高准确率？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "很多工具时怎么避免一堆 if-else？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "agent 拆多个角色各干各的是哪种架构思想？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "工具执行失败如何不影响整条对话？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "java21-concurrency.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "线程池里长期保活不销毁的线程叫什么？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "多个独立 RPC 怎么并发查完再合并？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "redis-cache-lock.md",
+            "mq-distributed-transaction.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "Java 21 用什么机制让高并发 IO 不爆线程？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "为什么线程池里 ThreadLocal 要小心？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "agent-function-calling.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "异步任务除了 @Async 还可以接什么组件削峰？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "mq-distributed-transaction.md",
+            "agent-function-calling.md",
+            "java21-concurrency.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "数据库底层 B+ 树为什么查询快？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "java-collections.md",
+            "mysql-index-transaction.md",
+            "agent-function-calling.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "like 查询怎么写会走不了索引？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "spring-ai-rag-notes.md",
+            "spring-web-api-design.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "事务的隔离级别默认是哪个？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "mq-distributed-transaction.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "防止幻读主要靠什么锁？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "spring-web-api-design.md",
+            "redis-cache-lock.md",
+            "java-collections.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "热点 key 过期瞬间大量请求打库叫什么？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "java-collections.md",
+            "redis-cache-lock.md",
+            "spring-web-api-design.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "大量 key 同时过期把库打崩是哪个问题？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "java-collections.md",
+            "redis-cache-lock.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "查一个不存在的 key 导致请求穿透到数据库怎么处理？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "spring-web-api-design.md",
+            "agent-function-calling.md",
+            "java21-concurrency.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "set nx ex 里 nx 和 ex 分别解决什么问题？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "spring-ai-rag-notes.md",
+            "java21-concurrency.md",
+            "mysql-index-transaction.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "排行榜用什么 Redis 结构实现？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "消息队列核心解决哪三个问题？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "java21-concurrency.md",
+            "spring-ai-rag-notes.md",
+            "mq-distributed-transaction.md",
+            "mysql-index-transaction.md"
+          ]
+        },
+        {
+          "question": "kafka 里保证不丢消息消费端要怎么做？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "java21-concurrency.md",
+            "mq-distributed-transaction.md",
+            "spring-web-api-design.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "mq 可能重复投递，消费方靠什么保证不重复处理？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "mysql-index-transaction.md",
+            "java21-concurrency.md",
+            "mq-distributed-transaction.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "本地消息表加定时补偿属于什么一致性方案？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "redis-cache-lock.md",
+            "mq-distributed-transaction.md",
+            "java-collections.md",
+            "mysql-index-transaction.md"
+          ]
+        },
+        {
+          "question": "controller 里为什么不能写 SQL？",
+          "hit": true,
+          "topDocs": [
+            "spring-web-api-design.md",
+            "mq-distributed-transaction.md",
+            "mysql-index-transaction.md",
+            "agent-function-calling.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "前端重复点提交怎么防止下两次单？",
+          "hit": true,
+          "topDocs": [
+            "spring-web-api-design.md",
+            "mysql-index-transaction.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "llm 回答一段段吐出来用哪种接口实现？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-web-api-design.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "上传的文件为什么先落临时目录？",
+          "hit": true,
+          "topDocs": [
+            "spring-web-api-design.md",
+            "mysql-index-transaction.md",
+            "mq-distributed-transaction.md",
+            "redis-cache-lock.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "随机访问快、尾部增删快的集合是哪个？",
+          "hit": true,
+          "topDocs": [
+            "java-collections.md",
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "多线程下要用的安全 Map 是哪个？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java-collections.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "linkedhashmap 怎么做成 lru？",
+          "hit": true,
+          "topDocs": [
+            "java-collections.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "日期格式化用什么类最安全？",
+          "hit": true,
+          "topDocs": [
+            "java-collections.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "redis-cache-lock.md",
+            "spring-ai-rag-notes.md"
+          ]
+        }
+      ],
+      "hitAt5": 1.0
+    },
+    {
+      "mode": "hybrid",
+      "total": 38,
+      "recallAt5": 1.0,
+      "hitAt1": 0.9736842105263158,
+      "details": [
+        {
+          "question": "RAG 是什么？解决什么问题？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "把文档变成向量之前要先做什么处理？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "按什么切块能让每个片段自带章节上下文？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "java21-concurrency.md",
+            "spring-ai-rag-notes.md",
+            "java21-concurrency.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "检索阶段同时用向量和关键词两条路是什么做法？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md"
+          ]
+        },
+        {
+          "question": "怎么衡量检索有没有召回对的文档？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "embedding 为什么只算一次还要求归一化？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md",
+            "spring-web-api-design.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "中文关键词搜索一般用什么工具做分词和打分？",
+          "hit": true,
+          "topDocs": [
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "agent 里模型想用工具时返回什么？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "工具描述写清楚为什么能提高准确率？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "mysql-index-transaction.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "很多工具时怎么避免一堆 if-else？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "java-collections.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "agent 拆多个角色各干各的是哪种架构思想？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "工具执行失败如何不影响整条对话？",
+          "hit": true,
+          "topDocs": [
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "agent-function-calling.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "线程池里长期保活不销毁的线程叫什么？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "多个独立 RPC 怎么并发查完再合并？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "redis-cache-lock.md",
+            "agent-function-calling.md",
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "Java 21 用什么机制让高并发 IO 不爆线程？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "为什么线程池里 ThreadLocal 要小心？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "异步任务除了 @Async 还可以接什么组件削峰？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java21-concurrency.md",
+            "mq-distributed-transaction.md",
+            "spring-web-api-design.md",
+            "agent-function-calling.md"
+          ]
+        },
+        {
+          "question": "数据库底层 B+ 树为什么查询快？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "java-collections.md",
+            "java-collections.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "like 查询怎么写会走不了索引？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "spring-web-api-design.md",
+            "spring-ai-rag-notes.md",
+            "mysql-index-transaction.md"
+          ]
+        },
+        {
+          "question": "事务的隔离级别默认是哪个？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "mysql-index-transaction.md",
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "防止幻读主要靠什么锁？",
+          "hit": true,
+          "topDocs": [
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md",
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "热点 key 过期瞬间大量请求打库叫什么？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "redis-cache-lock.md",
+            "java-collections.md",
+            "spring-web-api-design.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "大量 key 同时过期把库打崩是哪个问题？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "redis-cache-lock.md",
+            "java-collections.md",
+            "redis-cache-lock.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "查一个不存在的 key 导致请求穿透到数据库怎么处理？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "spring-web-api-design.md",
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "set nx ex 里 nx 和 ex 分别解决什么问题？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md",
+            "java21-concurrency.md",
+            "mq-distributed-transaction.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "排行榜用什么 Redis 结构实现？",
+          "hit": true,
+          "topDocs": [
+            "redis-cache-lock.md",
+            "redis-cache-lock.md",
+            "spring-ai-rag-notes.md",
+            "redis-cache-lock.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "消息队列核心解决哪三个问题？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "java21-concurrency.md",
+            "mq-distributed-transaction.md",
+            "java21-concurrency.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "kafka 里保证不丢消息消费端要怎么做？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md",
+            "java21-concurrency.md",
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md"
+          ]
+        },
+        {
+          "question": "mq 可能重复投递，消费方靠什么保证不重复处理？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "mq-distributed-transaction.md",
+            "mysql-index-transaction.md",
+            "mq-distributed-transaction.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "本地消息表加定时补偿属于什么一致性方案？",
+          "hit": true,
+          "topDocs": [
+            "mq-distributed-transaction.md",
+            "redis-cache-lock.md",
+            "mq-distributed-transaction.md",
+            "java-collections.md",
+            "mysql-index-transaction.md"
+          ]
+        },
+        {
+          "question": "controller 里为什么不能写 SQL？",
+          "hit": true,
+          "topDocs": [
+            "spring-web-api-design.md",
+            "mysql-index-transaction.md",
+            "mq-distributed-transaction.md",
+            "agent-function-calling.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "前端重复点提交怎么防止下两次单？",
+          "hit": true,
+          "topDocs": [
+            "spring-web-api-design.md",
+            "mq-distributed-transaction.md",
+            "mysql-index-transaction.md",
+            "spring-ai-rag-notes.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "llm 回答一段段吐出来用哪种接口实现？",
+          "hit": true,
+          "topDocs": [
+            "spring-web-api-design.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "mq-distributed-transaction.md",
+            "spring-web-api-design.md"
+          ]
+        },
+        {
+          "question": "上传的文件为什么先落临时目录？",
+          "hit": true,
+          "topDocs": [
+            "spring-web-api-design.md",
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md",
+            "mq-distributed-transaction.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "随机访问快、尾部增删快的集合是哪个？",
+          "hit": true,
+          "topDocs": [
+            "java-collections.md",
+            "mysql-index-transaction.md",
+            "redis-cache-lock.md",
+            "mysql-index-transaction.md",
+            "java-collections.md"
+          ]
+        },
+        {
+          "question": "多线程下要用的安全 Map 是哪个？",
+          "hit": true,
+          "topDocs": [
+            "java21-concurrency.md",
+            "java-collections.md",
+            "java21-concurrency.md",
+            "java-collections.md",
+            "java21-concurrency.md"
+          ]
+        },
+        {
+          "question": "linkedhashmap 怎么做成 lru？",
+          "hit": true,
+          "topDocs": [
+            "java-collections.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "spring-ai-rag-notes.md",
+            "redis-cache-lock.md"
+          ]
+        },
+        {
+          "question": "日期格式化用什么类最安全？",
+          "hit": true,
+          "topDocs": [
+            "java-collections.md",
+            "redis-cache-lock.md",
+            "java21-concurrency.md",
+            "java-collections.md",
+            "mysql-index-transaction.md"
+          ]
+        }
+      ],
+      "hitAt5": 1.0
+    }
+  ],
+  "retrieval_eval_seconds": 162.172,
+  "stream": {
+    "event_count": 22,
+    "delta_count": 20,
+    "passed": true,
+    "result": {
+      "question": "结构感知切分为什么保留标题层级？",
+      "answer": "结构感知切分保留标题层级，是为了让每个文本块自带“所属章节”的上下文信息，从而提升后续向量化与检索的语义完整性 [1]。标题层级在文档解析阶段被尽可能保留 [2]，成为结构感知切分的依据；按标题层级切分可避免语义断裂，使每个 chunk 天然具备层次化语义归属（如“3.2 节下的内容”），显著优于固定长度硬切 [1]。",
+      "citations": [
+        {
+          "chunk": {
+            "id": "7-2",
+            "docId": 7,
+            "docName": "spring-ai-rag-notes.md",
+            "headingPath": "Spring AI RAG 实现要点 / 二、RAG 流水线的四个阶段 / 2. 切分（Chunking）",
+            "seq": 2,
+            "content": "把长文本切成适合向量化的片段。切分质量直接决定检索质量，常见策略：\n- 固定长度切分：按字符数硬切，实现简单但容易切断语义；\n- 结构感知切分：按 Markdown 标题层级切块，让每个块自带\"所属章节\"上下文，检索语义更完整；\n- 切分参数：块大小（如 800 字符）与相邻块重叠（如 100 字符），重叠能缓解切在语义边界上的损失。"
+          },
+          "score": 0.6897526007123984,
+          "vectorScore": 0.5683402542771898,
+          "keywordScore": 0.8718711203652111,
+          "vectorRank": 2,
+          "keywordRank": 2
+        },
+        {
+          "chunk": {
+            "id": "7-1",
+            "docId": 7,
+            "docName": "spring-ai-rag-notes.md",
+            "headingPath": "Spring AI RAG 实现要点 / 二、RAG 流水线的四个阶段 / 1. 文档解析（Parsing）",
+            "seq": 1,
+            "content": "把 Markdown、TXT、PDF、Word 等格式的文档解析为纯文本，同时尽可能保留标题结构。标题结构是后续\"结构感知切分\"的基础。"
+          },
+          "score": 0.715941178566468,
+          "vectorScore": 0.5969181518137302,
+          "keywordScore": 0.8944757186955749,
+          "vectorRank": 1,
+          "keywordRank": 1
+        }
+      ],
+      "rejected": false
+    }
+  },
+  "passed": true,
+  "limitations": "Three answer cases are smoke checks, not a statistical answer-quality or refusal benchmark. Hit@5 is document-level; referenceAnswer is not scored."
+}

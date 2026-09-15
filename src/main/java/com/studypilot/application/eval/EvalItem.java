@@ -6,6 +6,6 @@ import java.util.List;
 public record EvalItem(
         String question,
         List<String> expectedDocNames, // 至少命中其一即算正例
-        String referenceAnswer        // 用于答案质量评估（可选）
+        String referenceAnswer        // 供人工核对，当前不参与自动打分
 ) {
 }

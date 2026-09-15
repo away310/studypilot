@@ -18,6 +18,20 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler({IllegalArgumentException.class,
+            org.springframework.http.converter.HttpMessageNotReadableException.class,
+            org.springframework.web.bind.MissingServletRequestParameterException.class,
+            org.springframework.web.multipart.support.MissingServletRequestPartException.class})
+    public ResponseEntity<Map<String, String>> badRequest(Exception e) {
+        String message = e instanceof IllegalArgumentException ? e.getMessage() : "请求格式或参数不正确";
+        return ResponseEntity.badRequest().body(Map.of("error", message == null ? "请求参数不正确" : message));
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> tooLarge(Exception e) {
+        return ResponseEntity.status(413).body(Map.of("error", "文件超过上传大小限制"));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handle(Exception e) {
         String msg = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
@@ -33,7 +47,7 @@ public class GlobalExceptionHandler {
             friendly = "DashScope 调用频率超限（429），请稍后重试";
         } else {
             status = HttpStatus.SERVICE_UNAVAILABLE;
-            friendly = "服务暂时不可用：" + msg;
+            friendly = "服务暂时不可用，请稍后重试";
         }
         return ResponseEntity.status(status).body(Map.of("error", friendly));
     }

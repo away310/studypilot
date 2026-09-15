@@ -16,8 +16,8 @@ import java.util.*;
 /**
  * Lucene BM25 关键词检索（内存索引，中文 SmartChinese 分词）。
  *
- * 索引在每次入库/删除后重建（块数量级为千，重建毫秒级）；
- * BM25 原始分经 min-max 归一化到 0~1，供混合检索 RRF/加权融合。
+ * 索引在每次入库/删除后重建，新索引构建成功后才替换旧索引；
+ * BM25 原始分由检索层使用固定饱和常数映射后加权融合。
  */
 @Component
 public class LuceneBm25Index {
@@ -41,18 +41,32 @@ public class LuceneBm25Index {
 
     /** 全量重建（入库/删除后调用，简单可靠）。 */
     public synchronized void rebuild(Map<String, String> chunkIdToText) {
+        Directory nextDirectory = new ByteBuffersDirectory();
+        IndexWriter nextWriter = null;
         try {
-            writer.deleteAll();
+            nextWriter = createWriter(nextDirectory);
             for (Map.Entry<String, String> e : chunkIdToText.entrySet()) {
                 Document doc = new Document();
                 doc.add(new StringField("id", e.getKey(), Field.Store.YES));
                 doc.add(new TextField("text", e.getValue(), Field.Store.NO));
-                writer.addDocument(doc);
+                nextWriter.addDocument(doc);
             }
-            writer.commit();
+            nextWriter.commit();
+            IndexWriter oldWriter = writer;
+            Directory oldDirectory = directory;
+            writer = nextWriter;
+            directory = nextDirectory;
+            nextWriter = null;
             version++;
+            oldWriter.close();
+            oldDirectory.close();
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
+        } finally {
+            if (nextWriter != null) {
+                try { nextWriter.close(); nextDirectory.close(); }
+                catch (IOException ignored) { }
+            }
         }
     }
 
@@ -64,7 +78,7 @@ public class LuceneBm25Index {
         }
         try (DirectoryReader reader = DirectoryReader.open(writer)) {
             IndexSearcher searcher = new IndexSearcher(reader);
-            Query query = new QueryParser("text", new SmartChineseAnalyzer()).parse(queryText);
+            Query query = new QueryParser("text", new SmartChineseAnalyzer()).parse(QueryParser.escape(queryText));
             TopDocs topDocs = searcher.search(query, topN);
             for (ScoreDoc sd : topDocs.scoreDocs) {
                 Document doc = searcher.storedFields().document(sd.doc);

@@ -1,0 +1,13 @@
+{
+  "unauthenticated_blocked": true,
+  "page_status": 200,
+  "new_ui": true,
+  "css_status": 200,
+  "documents": 8,
+  "chunks": 43,
+  "chat_passed": true,
+  "answer": "混合检索的两条通道是：**向量通道（语义检索）** 和 **BM25 关键词通道（精确匹配检索）** [1]。\n\n融合方式分为两个阶段：\n\n1. **召回阶段融合**：  \n   向量通道取 top-20 结果，BM25 通道也取 top-20 结果，然后对两组结果取**并集**（去重合并）[2]。\n\n2. **排序阶段融合（融合排序）**：  \n   对并集后的候选文档进行重排，常用方法有两种：  \n   - **线性加权融合**：按预设权重对各通道得分加权求和（例如向量得分 × 0.6 + BM25 得分 × 0.4）；  \n   - **RRF（Reciprocal Rank Fusion）**：对每个文档在各通道中的排名取倒数后求和，按总和降序排列 [2]。\n\n最终从融合排序结果中取 **top-5** 作为精排后上下文，用于后续生成 [2]。",
+  "stream_passed": true,
+  "stream_delta_count": 43,
+  "existing_site_status": 200
+}

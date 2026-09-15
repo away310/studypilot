@@ -1,5 +1,10 @@
 server:
   port: 8080
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
 
 spring:
   application:
@@ -18,6 +23,11 @@ spring:
     dashscope:
       api-key: ${DASHSCOPE_API_KEY:}
 
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 21MB
+
   datasource:
     url: jdbc:sqlite:./data/studypilot.db
     driver-class-name: org.sqlite.JDBC
@@ -31,6 +41,10 @@ spring:
     open-in-view: false
 
 app:
+  # 应用内登录账号（替代 Nginx Basic 认证）；密码只从环境变量读取，不写入仓库
+  auth:
+    username: ${STUDYPILOT_AUTH_USER:away}
+    password: ${STUDYPILOT_AUTH_PASSWORD:}
   kb:
     # 默认示例知识库目录（相对项目根，可改成绝对路径）
     default-dir: ./kb
@@ -46,12 +60,11 @@ app:
     # 混合检索权重
     vector-weight: 0.6
     keyword-weight: 0.4
-    # 回答中引用分块是否保留全文
-    include-chunk-text-in-prompt: true
+    # BM25 分数映射 score / (score + k)，固定 k，分数不是概率
+    bm25-saturation: 1.0
   answer:
     # 拒答阈值：基于 top 命中块的「最大向量相似度」。
-    # 实测（text-embedding-v3，中文）：相关知识 0.61~0.75，明显无关 0.34~0.40，
-    # 取 0.50 可干净分离。不用混合分做阈值，避免 BM25 弱命中把分数虚高。
+    # 初始阈值需按自己的语料与负例校准，主题相似不代表资料足以回答。
     reject-threshold: 0.50
 
 logging:

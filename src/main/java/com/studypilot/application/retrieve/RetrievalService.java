@@ -26,6 +26,11 @@ public class RetrievalService {
 
     public enum Mode { VECTOR, KEYWORD, HYBRID }
 
+    private final com.studypilot.application.index.ChunkIndexService indexService;
+
+    @Value("${app.retrieval.bm25-saturation:1.0}")
+    private double bm25Saturation;
+
     private final EmbeddingModel embeddingModel;
     private final VectorStore vectorStore;
     private final LuceneBm25Index bm25Index;
@@ -49,7 +54,8 @@ public class RetrievalService {
     public RetrievalService(EmbeddingModel embeddingModel,
                             VectorStore vectorStore,
                             LuceneBm25Index bm25Index,
-                            KbChunkRepository chunkRepository) {
+                            KbChunkRepository chunkRepository, com.studypilot.application.index.ChunkIndexService indexService) {
+        this.indexService = indexService;
         this.embeddingModel = embeddingModel;
         this.vectorStore = vectorStore;
         this.bm25Index = bm25Index;
@@ -57,6 +63,8 @@ public class RetrievalService {
     }
 
     public RetrievalResult retrieve(String query, Mode mode) {
+        if (query == null || query.isBlank()) throw new IllegalArgumentException("问题不能为空");
+        if (mode != Mode.VECTOR) indexService.refreshIfDirty();
         List<RetrievalHit> hits = switch (mode) {
             case VECTOR -> vectorRetrieve(query);
             case KEYWORD -> keywordRetrieve(query);
@@ -69,7 +77,7 @@ public class RetrievalService {
         return new RetrievalResult(query, hits, confident);
     }
 
-    /** 纯向量检索（默认调用入口）。 */
+    /** 混合检索（默认调用入口）。 */
     public RetrievalResult retrieve(String query) {
         return retrieve(query, Mode.HYBRID);
     }
@@ -90,7 +98,7 @@ public class RetrievalService {
         List<VectorStore.ScoredId> vecScored = vectorStore.search(q, recallCandidates);
         LinkedHashMap<String, Double> kwScored = bm25Index.search(query, recallCandidates);
 
-        // BM25 原始分 min-max 归一化到 0~1
+        // BM25 使用固定饱和常数映射到 0~1（非概率）
         Map<String, Double> kwNorm = normalizeBm25(kwScored);
         Map<String, Double> vecScore = vecScored.stream()
                 .collect(Collectors.toMap(VectorStore.ScoredId::chunkId, s -> clamp01(s.score())));
@@ -150,7 +158,7 @@ public class RetrievalService {
                 }
             }
         }
-        return hits;
+        return hits.stream().limit(topK).toList();
     }
 
     private TextChunk loadChunk(String chunkId) {
@@ -160,15 +168,14 @@ public class RetrievalService {
     /**
      * BM25 平滑归一化到 0~1：norm = score / (score + k)。
      * 相比 min-max，不会因为"只有 1~2 个弱命中"就把最高分顶到 1.0，
-     * 保留"弱命中得分低、强命中得分高"的绝对语义。
+     * 固定 k 避免单条弱命中被抬到 0.5；分数仍非跨语料可比的概率。
      */
     private Map<String, Double> normalizeBm25(LinkedHashMap<String, Double> raw) {
         Map<String, Double> out = new HashMap<>();
         if (raw.isEmpty()) {
             return out;
         }
-        double k = raw.values().stream().mapToDouble(Double::doubleValue).average().orElse(1.0);
-        k = Math.max(k, 1e-6);
+        double k = Math.max(bm25Saturation, 1e-6);
         for (Map.Entry<String, Double> e : raw.entrySet()) {
             double norm = e.getValue() / (e.getValue() + k);
             out.put(e.getKey(), norm);

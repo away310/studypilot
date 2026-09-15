@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * BM25 关键词索引管理器：启动时与入库/删除后全量重建（数据量小，重建毫秒级）。
+ * BM25 关键词索引管理器：启动时与入库/删除后全量重建（数据库提交后刷新，失败时下一次检索重试）。
  */
 @Component
 public class ChunkIndexService implements ApplicationRunner {
@@ -24,12 +24,29 @@ public class ChunkIndexService implements ApplicationRunner {
         this.bm25Index = bm25Index;
     }
 
+    private volatile boolean dirty = true;
+
+    public void invalidateAfterCommit() {
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override public void afterCommit() { markDirty(); }
+                });
+    }
+
+    private synchronized void markDirty() { dirty = true; }
+
+    public synchronized void refreshIfDirty() {
+        if (dirty) refresh();
+    }
+
     public synchronized void refresh() {
+        dirty = true;
         Map<String, String> idToText = new HashMap<>();
         for (KbChunkEntity chunk : chunkRepository.findAll()) {
-            idToText.put(chunk.getId(), chunk.getContent());
+            idToText.put(chunk.getId(), com.studypilot.model.TextChunk.searchText(chunk.getHeadingPath(), chunk.getContent()));
         }
         bm25Index.rebuild(idToText);
+        dirty = false;
     }
 
     @Override

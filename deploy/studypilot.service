@@ -1,0 +1,26 @@
+[Unit]
+Description=StudyPilot knowledge base
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=studypilot
+Group=studypilot
+WorkingDirectory=/opt/studypilot/current
+EnvironmentFile=/etc/studypilot/studypilot.env
+ExecStart=/usr/lib/jvm/java-21-alibaba-dragonwell-21.0.11.0.11-1.1.al8.x86_64/bin/java -Xms128m -Xmx384m -XX:MaxMetaspaceSize=192m -XX:+ExitOnOutOfMemoryError -jar /opt/studypilot/current/studypilot.jar
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=40
+SuccessExitStatus=143
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/studypilot
+MemoryMax=768M
+
+[Install]
+WantedBy=multi-user.target

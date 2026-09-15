@@ -60,6 +60,14 @@ class StructureAwareSplitterTest {
     }
 
     @Test
+    void rejectsInvalidWindowAndPreservesExactOverlap() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> new StructureAwareSplitter(10, 10));
+        assertThrows(IllegalArgumentException.class, () -> new StructureAwareSplitter(0, 0));
+        var sections = new StructureAwareSplitter(6, 3).split(parseMd("abcdefghijkl"));
+        assertEquals(List.of("abcdef", "defghi", "ghijkl"), sections.stream().map(StructureAwareSplitter.Section::text).toList());
+    }
+
+    @Test
     void parserSupportsMarkdownAndTxt() {
         assertTrue(parser.supports("markdown"));
         assertTrue(parser.supports("txt"));

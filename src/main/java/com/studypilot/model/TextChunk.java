@@ -14,6 +14,10 @@ public record TextChunk(
         int seq,              // 文档内块序号
         String content
 ) {
+    public static String searchText(String headingPath, String content) {
+        return headingPath == null || headingPath.isBlank() ? content : headingPath + "\n" + content;
+    }
+
     public String sourceLabel() {
         return docName + (headingPath == null || headingPath.isBlank() ? "" : " · " + headingPath);
     }

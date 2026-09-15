@@ -1,0 +1,118 @@
+:root {
+  --ink: #26223b;
+  --muted: #898598;
+  --purple: #7958d5;
+  --purple-dark: #6544c4;
+  --line: #eeecf4;
+  --rail: #242039;
+  --surface: #faf9fc;
+  --soft: #f0ebfc;
+  --danger: #d9534f;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--rail);
+  color: var(--ink);
+  font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* 背景光晕 */
+.aurora { position: fixed; inset: 0; overflow: hidden; z-index: 0; }
+.aurora span {
+  position: absolute; display: block; border-radius: 50%;
+  filter: blur(70px); opacity: .55;
+  animation: float 18s ease-in-out infinite;
+}
+.aurora span:nth-child(1) { width: 46vw; height: 46vw; left: -8vw; top: -10vw; background: #7958d5; }
+.aurora span:nth-child(2) { width: 38vw; height: 38vw; right: -6vw; bottom: -12vw; background: #4c3d9e; animation-delay: -6s; }
+.aurora span:nth-child(3) { width: 26vw; height: 26vw; right: 18vw; top: 6vh; background: #bda6fa; opacity: .35; animation-delay: -12s; }
+@keyframes float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(2vw, 3vh, 0) scale(1.12); }
+}
+
+/* 卡片 */
+.card {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 396px;
+  background: #fff;
+  border-radius: 22px;
+  padding: 34px 30px 26px;
+  box-shadow: 0 28px 60px rgba(16, 10, 40, .42), 0 2px 6px rgba(16, 10, 40, .18);
+  animation: rise .5s cubic-bezier(.2, .7, .3, 1);
+}
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.brand { display: flex; align-items: center; gap: 13px; margin-bottom: 26px; }
+.logo {
+  width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+  background: linear-gradient(150deg, var(--purple), var(--purple-dark));
+  display: grid; place-items: center;
+  box-shadow: 0 8px 18px rgba(121, 88, 213, .35);
+}
+.logo svg { width: 24px; height: 24px; fill: none; stroke: #fff; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+h1 { font-size: 20px; font-weight: 700; letter-spacing: -.2px; }
+.tagline { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+.field { display: block; margin-bottom: 15px; }
+.field > span {
+  display: block; font-size: 12.5px; font-weight: 600;
+  color: var(--muted); margin-bottom: 6px;
+}
+.field input {
+  width: 100%; padding: 12px 14px;
+  border: 1.5px solid var(--line); border-radius: 12px;
+  background: var(--surface); color: var(--ink);
+  font: inherit; transition: border-color .18s, box-shadow .18s, background .18s;
+}
+.field input:focus {
+  outline: none; background: #fff;
+  border-color: var(--purple);
+  box-shadow: 0 0 0 4px rgba(121, 88, 213, .14);
+}
+.remember { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); margin: 2px 0 18px; }
+.remember input { width: 15px; height: 15px; accent-color: var(--purple); }
+
+button[type=submit] {
+  width: 100%; padding: 13px;
+  border: 0; border-radius: 12px;
+  background: linear-gradient(150deg, var(--purple), var(--purple-dark));
+  color: #fff; font-size: 15px; font-weight: 650; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  transition: filter .18s, transform .18s, box-shadow .18s;
+  box-shadow: 0 10px 22px rgba(121, 88, 213, .32);
+}
+button[type=submit]:hover:not(:disabled) { filter: brightness(1.06); }
+button[type=submit]:active:not(:disabled) { transform: translateY(1px); }
+button[type=submit]:disabled { opacity: .62; cursor: not-allowed; }
+.spinner {
+  width: 16px; height: 16px; display: none;
+  border: 2px solid rgba(255, 255, 255, .45); border-top-color: #fff;
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+button.loading .spinner { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error {
+  margin-top: 13px; font-size: 12.5px; color: var(--danger);
+  min-height: 17px; opacity: 0; transition: opacity .18s;
+}
+.error.show { opacity: 1; }
+
+.hint {
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line);
+  font-size: 11.5px; color: var(--muted); text-align: center; line-height: 1.6;
+}
+
+@media (max-width: 420px) {
+  .card { padding: 28px 22px 22px; border-radius: 18px; }
+  h1 { font-size: 18.5px; }
+}

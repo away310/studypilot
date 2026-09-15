@@ -37,10 +37,10 @@ import static org.mockito.ArgumentMatchers.any;
  * 端到端集成测试（不依赖真实 DashScope Key）：
  * 用确定性 mock embedding（词袋哈希向量）与 mock chat 验证整条 RAG 管线，
  * 覆盖：入库 → 检索 → 评测 → 问答 → 拒答。
- * 真实 Key 只影响向量/回答质量，不影响本测试对"代码逻辑正确性"的判定。
+ * mock 只验证管线行为，不证明真实模型的回答质量。
  */
 @SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:sqlite:./data/test-e2e.db",
+        "spring.datasource.url=jdbc:sqlite:file:studypilot-test?mode=memory&cache=shared",
         "app.kb.auto-seed=false",
         "spring.ai.dashscope.api-key=mock",
         // mock 词袋向量的余弦值天然低于真实 embedding，测试用较低阈值验证"命中→不拒/无关→拒"的逻辑
@@ -63,9 +63,15 @@ class StudyPilotE2eFlowTest {
     @MockitoBean
     ChatClient chatClient;
 
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    com.studypilot.infrastructure.search.LuceneBm25Index bm25;
+
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    com.studypilot.infrastructure.vector.CosineVectorStore vectorStore;
+
+
     @BeforeEach
     void setUp() throws Exception {
-        Files.createDirectories(Path.of("./data"));
         clearAllData();
 
         // 确定性词袋向量：同一 token 命中越多，向量越接近（可复现、无需外部服务）
@@ -154,7 +160,7 @@ class StudyPilotE2eFlowTest {
         assertEquals("spring-ai-rag-notes.md", result.hits().get(0).chunk().docName(),
                 "top-1 应为 RAG 笔记");
 
-        // 2) 评测：三组模式结构完整且混合 Recall@5 不劣于单通道下限
+        // 2) 评测：三组结构完整，混合 Hit@5 至少覆盖半数样本
         List<EvalItem> items = evalService.loadEvalSet();
         List<EvalReport> reports = evalService.runAll(items);
         assertEquals(3, reports.size());
@@ -182,6 +188,73 @@ class StudyPilotE2eFlowTest {
         Mockito.verify(chatClient, Mockito.never()).prompt();
     }
 
+    @Test
+    void failedEmbeddingReplacementPreservesOldDocumentAndIndex() throws Exception {
+        ingest("stable.md", "# 原始标题\n稳定内容独特关键词");
+        var original = ingestService.listDocuments().getFirst();
+        Mockito.when(embeddingModel.call(any(EmbeddingRequest.class))).thenThrow(new IllegalStateException("offline"));
+        assertThrows(IllegalStateException.class, () -> ingest("stable.md", "# 新版本\n其他内容"));
+        assertEquals(original.id(), ingestService.listDocuments().getFirst().id());
+        assertFalse(retrievalService.retrieve("独特关键词", RetrievalService.Mode.KEYWORD).hits().isEmpty());
+    }
+
+    @Test
+    void failedDatabaseWriteRollsBackWithoutPublishingIndex() throws Exception {
+        ingest("stable.md", "# 原始标题\n稳定内容独特关键词");
+        var original = ingestService.listDocuments().getFirst();
+        long version = bm25.version();
+        Mockito.doThrow(new IllegalStateException("write failure")).when(vectorStore).upsert(any(), any());
+        assertThrows(IllegalStateException.class, () -> ingest("stable.md", "# 新版本\n替代内容"));
+        assertEquals(original.id(), ingestService.listDocuments().getFirst().id());
+        assertEquals(version, bm25.version());
+        assertFalse(retrievalService.retrieve("独特关键词", RetrievalService.Mode.KEYWORD).hits().isEmpty());
+    }
+
+    @Test
+    void failedIndexRefreshRetriesOnNextSearch() throws Exception {
+        Mockito.doThrow(new IllegalStateException("index unavailable")).doCallRealMethod().when(bm25).rebuild(any());
+        assertThrows(IllegalStateException.class, () -> ingest("retry.md", "# 可恢复索引\n刷新重试内容"));
+        assertEquals(1, ingestService.listDocuments().size(), "数据库已提交");
+        assertFalse(retrievalService.retrieve("可恢复索引", RetrievalService.Mode.KEYWORD).hits().isEmpty());
+    }
+
+    @Test
+    void headingsParticipateInBothRetrievalChannelsAndReplacementDeletesOldChunks() throws Exception {
+        ingest("headings.md", "# 独特标题术语\n正文没有该关键词");
+        Mockito.verify(embeddingModel).call(Mockito.argThat(request ->
+                request.getInstructions().getFirst().contains("独特标题术语\n正文")));
+        var hits = retrievalService.retrieve("独特标题术语", RetrievalService.Mode.KEYWORD).hits();
+        assertEquals("headings.md", hits.getFirst().chunk().docName());
+        ingest("headings.md", "# 全新版本\n替代文字");
+        assertEquals(1, ingestService.listDocuments().size());
+        assertEquals(1, vectorRepository.count());
+        assertTrue(retrievalService.retrieve("独特标题术语", RetrievalService.Mode.KEYWORD).hits().isEmpty());
+        ingestService.deleteDocument(ingestService.listDocuments().getFirst().id());
+        assertEquals(0, vectorRepository.count());
+        assertTrue(retrievalService.retrieve("全新版本", RetrievalService.Mode.KEYWORD).hits().isEmpty());
+    }
+
+    @Test
+    void rejectsUnrelatedQuestionWithNonEmptyKnowledgeBaseWithoutCallingChat() throws Exception {
+        Mockito.when(embeddingModel.call(any(EmbeddingRequest.class))).thenReturn(
+                new EmbeddingResponse(List.of(new Embedding(new float[]{1, 0}, 0))));
+        ingest("redis.md", "# Redis\n缓存雪崩处理");
+        Mockito.when(embeddingModel.call(any(EmbeddingRequest.class))).thenReturn(
+                new EmbeddingResponse(List.of(new Embedding(new float[]{0, 1}, 0))));
+        assertTrue(answerService.answer("明天的天气怎么样").rejected());
+        Mockito.verify(chatClient, Mockito.never()).prompt();
+    }
+
+    @Test
+    void malformedEmbeddingDoesNotReplaceDocument() throws Exception {
+        ingest("stable.md", "# 标题\n正文");
+        long id = ingestService.listDocuments().getFirst().id();
+        Mockito.when(embeddingModel.call(any(EmbeddingRequest.class)))
+                .thenReturn(new EmbeddingResponse(List.of()));
+        assertThrows(IllegalStateException.class, () -> ingest("stable.md", "# 标题\n新正文"));
+        assertEquals(id, ingestService.listDocuments().getFirst().id());
+    }
+
     /**
      * 字符级二值词袋向量：共享字符越多余弦越高。
      * 相比"每字符哈希计数"，二值向量避免了长文本计数主导导致的相似度虚高，
@@ -194,7 +267,7 @@ class StudyPilotE2eFlowTest {
         // 中文逐字 + 英文逐字符统一映射为二值位（去重）
         java.util.HashSet<Integer> seen = new java.util.HashSet<>();
         for (int i = 0; i < cleaned.length(); i++) {
-            int h = (cleaned.charAt(i) * 131 + i) & 0x7fffffff;
+            int h = (cleaned.charAt(i) * 131) & 0x7fffffff;
             seen.add(h % dim);
         }
         for (int bucket : seen) {
